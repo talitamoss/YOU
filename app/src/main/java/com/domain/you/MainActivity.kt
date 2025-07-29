@@ -30,36 +30,39 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun HealingConnectApp() {
     val navController = rememberNavController()
-
+    
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "splash",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("splash") {
+            composable("splash") { 
                 SplashScreen(navController)
             }
-            composable("onboarding") {
+            composable("onboarding") { 
                 OnboardingScreen(navController)
             }
-            composable("login") {
+            composable("login") { 
                 LoginScreen(navController)
             }
-            composable("signup?role={role}") {
+            composable("signup?role={role}") { 
                 SignupScreen(navController)
             }
-            composable("seeker_home") {
+            composable("seeker_home") { 
                 SeekerHomeScreen(navController)
             }
-            composable("alchemist_home") {
+            composable("alchemist_home") { 
                 AlchemistHomeScreen(navController)
             }
-            composable("profile") {
+            composable("profile") { 
                 ProfileScreen(navController)
             }
-            composable("search") {
+            composable("search") { 
                 SearchScreen(navController)
+            }
+            composable("messages") {
+                MessagesScreen(navController)
             }
             composable("alchemist_detail/{alchemistId}") { backStackEntry ->
                 AlchemistDetailScreen(

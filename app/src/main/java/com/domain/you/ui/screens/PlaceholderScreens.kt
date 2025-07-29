@@ -9,20 +9,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun SeekerHomeScreen(navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Seeker Home", style = MaterialTheme.typography.headlineMedium)
-        // TODO: Implement seeker home functionality
-    }
-}
-
-@Composable
 fun AlchemistHomeScreen(navController: NavController) {
     Column(
         modifier = Modifier
