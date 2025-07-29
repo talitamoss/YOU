@@ -8,19 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
-@Composable
-fun AlchemistHomeScreen(navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Alchemist Home", style = MaterialTheme.typography.headlineMedium)
-        // TODO: Implement alchemist home functionality
-    }
-}
+// Removed SeekerHomeScreen as it's now in its own file
+
+// Removed AlchemistHomeScreen as it's now in its own file
 
 @Composable
 fun ProfileScreen(navController: NavController) {

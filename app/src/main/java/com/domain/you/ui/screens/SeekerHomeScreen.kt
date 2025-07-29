@@ -1,6 +1,7 @@
 package com.domain.you.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,378 +24,910 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.domain.you.data.models.HealingModalities
-import com.domain.you.ui.components.AlchemistCard
-import com.domain.you.ui.components.BottomNavBar
-import com.domain.you.ui.components.SearchBar
-
-// Dummy data for now - will be replaced with Firebase data later
-data class DummyAlchemist(
-    val id: String,
-    val name: String,
-    val title: String,
-    val imageUrl: String,
-    val rating: Float,
-    val reviewCount: Int,
-    val hourlyRate: String,
-    val modalities: List<String>,
-    val isOnline: Boolean = false,
-    val distance: String? = null
-)
+import com.domain.you.data.models.*
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeekerHomeScreen(navController: NavController) {
-    var selectedModality by remember { mutableStateOf<String?>(null) }
-    var searchQuery by remember { mutableStateOf("") }
-    
-    // Dummy data - will be replaced with real data
-    val featuredAlchemists = remember {
-        listOf(
-            DummyAlchemist(
-                "1", "Sarah Johnson", "Reiki Master & Energy Healer",
-                "https://randomuser.me/api/portraits/women/1.jpg",
-                4.9f, 127, "$80-120", listOf("Reiki", "Energy Healing", "Meditation"),
-                isOnline = true
-            ),
-            DummyAlchemist(
-                "2", "Michael Chen", "Holistic Life Coach",
-                "https://randomuser.me/api/portraits/men/2.jpg",
-                4.8f, 89, "$100-150", listOf("Life Coaching", "Breathwork", "Meditation")
-            ),
-            DummyAlchemist(
-                "3", "Luna Martinez", "Sound Healer & Yoga Teacher",
-                "https://randomuser.me/api/portraits/women/3.jpg",
-                5.0f, 203, "$70-100", listOf("Sound Healing", "Yoga Therapy", "Meditation"),
-                isOnline = true
-            )
-        )
-    }
-    
-    val nearbyAlchemists = remember {
-        listOf(
-            DummyAlchemist(
-                "4", "David Thompson", "Massage Therapist",
-                "https://randomuser.me/api/portraits/men/4.jpg",
-                4.7f, 64, "$90", listOf("Massage Therapy", "Reflexology"),
-                distance = "0.8 mi"
-            ),
-            DummyAlchemist(
-                "5", "Emma Wilson", "Acupuncturist",
-                "https://randomuser.me/api/portraits/women/5.jpg",
-                4.9f, 112, "$120", listOf("Acupuncture", "Traditional Chinese Medicine"),
-                distance = "1.2 mi"
-            ),
-            DummyAlchemist(
-                "6", "James Brown", "Herbalist & Nutritionist",
-                "https://randomuser.me/api/portraits/men/6.jpg",
-                4.6f, 38, "$80", listOf("Herbalism", "Nutritional Counseling"),
-                distance = "2.1 mi"
-            )
-        )
-    }
-    
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Discover", "Bookings", "Saved")
+
     Scaffold(
-        bottomBar = {
-            BottomNavBar(
-                navController = navController,
-                currentRoute = "seeker_home"
-            )
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Header Section
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(bottom = 16.dp)
-                ) {
-                    // Greeting and Notifications
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Welcome back!",
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = "Find your healer",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        
-                        IconButton(
-                            onClick = { /* TODO: Navigate to notifications */ }
-                        ) {
-                            Badge(
-                                
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Notifications,
-                                    contentDescription = "Notifications",
-                                    tint = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        }
-                    }
-                    
-                    // Search Bar
-                    SearchBar(
-                        query = searchQuery,
-                        onQueryChange = { searchQuery = it },
-                        onSearch = { 
-                            // TODO: Navigate to search screen with query
-                            navController.navigate("search?query=$it")
-                        },
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-            }
-            
-            // Filter Chips
-            item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    items(HealingModalities.list.take(8)) { modality ->
-                        FilterChip(
-                            selected = selectedModality == modality,
-                            onClick = {
-                                selectedModality = if (selectedModality == modality) null else modality
-                            },
-                            label = { Text(modality) },
-                            leadingIcon = if (selectedModality == modality) {
-                                {
-                                    Icon(
-                                        Icons.Filled.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            } else null
-                        )
-                    }
-                }
-            }
-            
-            // Featured Alchemists Section
-            item {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
                         Text(
-                            text = "Featured Healers",
-                            fontSize = 20.sp,
+                            "Welcome back",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            "Sarah", // This would come from the user data
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
-                        TextButton(onClick = { /* TODO: See all featured */ }) {
-                            Text("See all")
-                        }
                     }
-                    
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) {
-                        items(featuredAlchemists) { alchemist ->
-                            FeaturedAlchemistCard(
-                                alchemist = alchemist,
-                                onClick = {
-                                    navController.navigate("alchemist_detail/${alchemist.id}")
-                                }
-                            )
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO: Notifications */ }) {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.offset(8.dp, (-8).dp)
+                        ) {
+                            Text("3", fontSize = 10.sp)
                         }
+                        Icon(Icons.Outlined.Notifications, contentDescription = "Notifications")
+                    }
+                    IconButton(onClick = { navController.navigate("profile") }) {
+                        Icon(Icons.Outlined.AccountCircle, contentDescription = "Profile")
                     }
                 }
-            }
-            
-            // Nearby Alchemists Section
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Nearby Healers",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    TextButton(onClick = { /* TODO: See all nearby */ }) {
-                        Text("See all")
-                    }
-                }
-            }
-            
-            // Nearby Alchemists List
-            items(nearbyAlchemists) { alchemist ->
-                AlchemistCard(
-                    alchemist = alchemist,
-                    onClick = {
-                        navController.navigate("alchemist_detail/${alchemist.id}")
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
+                    label = { Text("Home") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { navController.navigate("search") },
+                    icon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
+                    label = { Text("Search") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    icon = { Icon(Icons.Filled.CalendarMonth, contentDescription = "Bookings") },
+                    label = { Text("Bookings") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    icon = { Icon(Icons.Filled.Favorite, contentDescription = "Saved") },
+                    label = { Text("Saved") }
                 )
             }
-            
-            // Bottom spacing
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+        }
+    ) { paddingValues ->
+        when (selectedTab) {
+            0 -> DiscoverTab(navController, paddingValues)
+            1 -> BookingsTab(navController, paddingValues)
+            2 -> SavedTab(navController, paddingValues)
+        }
+    }
+}
+
+@Composable
+fun DiscoverTab(navController: NavController, paddingValues: PaddingValues) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        // Search Bar
+        item {
+            SearchBarSection(navController)
+        }
+
+        // Quick Categories
+        item {
+            QuickCategoriesSection(navController)
+        }
+
+        // Upcoming Session
+        item {
+            val upcomingSession = mockUpcomingSession()
+            if (upcomingSession != null) {
+                UpcomingSessionCard(upcomingSession, navController)
+            }
+        }
+
+        // Featured Alchemists
+        item {
+            FeaturedAlchemistsSection(navController)
+        }
+
+        // Recommended For You
+        item {
+            RecommendedSection(navController)
+        }
+
+        // Recent Reviews
+        item {
+            RecentReviewsSection()
+        }
+    }
+}
+
+@Composable
+fun SearchBarSection(navController: NavController) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable { navController.navigate("search") },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Search",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                "Search for alchemists or modalities...",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun QuickCategoriesSection(navController: NavController) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            "Quick Categories",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(mockCategories) { category ->
+                CategoryChip(category) {
+                    navController.navigate("search?modality=${category.name}")
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeaturedAlchemistCard(
-    alchemist: DummyAlchemist,
-    onClick: () -> Unit
-) {
+fun CategoryChip(category: ModalityCategory, onClick: () -> Unit) {
     Card(
         onClick = onClick,
-        modifier = Modifier
-            .width(280.dp)
-            .height(320.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            containerColor = category.color.copy(alpha = 0.1f)
+        )
     ) {
-        Column {
-            // Image with Online Badge
-            Box {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                category.icon,
+                contentDescription = category.name,
+                tint = category.color,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                category.name,
+                fontSize = 12.sp,
+                color = category.color
+            )
+        }
+    }
+}
+
+@Composable
+fun UpcomingSessionCard(booking: MockBooking, navController: NavController) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Upcoming Session",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    booking.timeUntil,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 AsyncImage(
-                    model = alchemist.imageUrl,
-                    contentDescription = alchemist.name,
+                    model = booking.alchemistImage,
+                    contentDescription = null,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp),
+                        .size(48.dp)
+                        .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
-                
-                if (alchemist.isOnline) {
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        booking.alchemistName,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        "${booking.serviceName} • ${booking.time}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = { /* TODO: Join session */ }) {
+                    Icon(
+                        Icons.Default.VideoCall,
+                        contentDescription = "Join",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FeaturedAlchemistsSection(navController: NavController) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Featured Alchemists",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            TextButton(onClick = { navController.navigate("search") }) {
+                Text("See All")
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(mockFeaturedAlchemists) { alchemist ->
+                FeaturedAlchemistCard(alchemist) {
+                    navController.navigate("alchemist_detail/${alchemist.userId}")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FeaturedAlchemistCard(alchemist: Alchemist, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.width(200.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                AsyncImage(
+                    model = "https://picsum.photos/200/120?random=${alchemist.userId}",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                if (alchemist.isVerified) {
                     Surface(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color.Green.copy(alpha = 0.9f)
+                            .padding(8.dp)
+                            .align(Alignment.TopEnd),
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.primary
                     ) {
-                        Text(
-                            text = "Online Now",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Verified,
+                                contentDescription = "Verified",
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                "Verified",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             }
-            
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-            ) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = alchemist.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                
-                Text(
-                    text = alchemist.title,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    mockAlchemistNames[alchemist.userId] ?: "Unknown",
+                    fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Rating
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+                Text(
+                    alchemist.modalities.take(2).joinToString(" • "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Filled.Star,
+                        Icons.Default.Star,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = Color(0xFFFFB800)
                     )
                     Text(
-                        text = alchemist.rating.toString(),
+                        "${alchemist.rating}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        " (${alchemist.reviewCount})",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        "$${alchemist.hourlyRate?.toInt() ?: 0}/hr",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RecommendedSection(navController: NavController) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            "Recommended For You",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            "Based on your interests in Meditation & Energy Healing",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        mockRecommendedAlchemists.forEach { alchemist ->
+            AlchemistListCard(alchemist) {
+                navController.navigate("alchemist_detail/${alchemist.userId}")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun AlchemistListCard(alchemist: Alchemist, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = "https://picsum.photos/80/80?random=${alchemist.userId}",
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        mockAlchemistNames[alchemist.userId] ?: "Unknown",
+                        fontWeight = FontWeight.Medium
+                    )
+                    if (alchemist.isVerified) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            Icons.Default.Verified,
+                            contentDescription = "Verified",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Text(
+                    alchemist.modalities.joinToString(" • "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Star,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = Color(0xFFFFB800)
+                    )
+                    Text(
+                        "${alchemist.rating} (${alchemist.reviewCount})",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        alchemist.location?.city ?: "Online",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    "$${alchemist.hourlyRate?.toInt() ?: 0}",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    "per hour",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RecentReviewsSection() {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            "Recent Reviews",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        mockRecentReviews.forEach { review ->
+            ReviewCard(review)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun ReviewCard(review: Review) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = "https://picsum.photos/40/40?random=${review.reviewerId}",
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        review.reviewerName,
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp
                     )
                     Text(
-                        text = "(${alchemist.reviewCount})",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    
-                    Spacer(modifier = Modifier.weight(1f))
-                    
-                    Text(
-                        text = alchemist.hourlyRate,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        "for ${mockAlchemistNames[review.alchemistId]}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Modality chips
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    alchemist.modalities.take(2).forEach { modality ->
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Text(
-                                text = modality,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                    if (alchemist.modalities.size > 2) {
-                        Text(
-                            text = "+${alchemist.modalities.size - 2}",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                Row {
+                    repeat(5) { index ->
+                        Icon(
+                            if (index < review.rating) Icons.Default.Star else Icons.Default.StarBorder,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (index < review.rating) Color(0xFFFFB800) else MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                review.comment,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun BookingsTab(navController: NavController, paddingValues: PaddingValues) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(16.dp)
+    ) {
+        Text(
+            "Your Bookings",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (mockBookings.isEmpty()) {
+            EmptyStateMessage(
+                icon = Icons.Default.CalendarMonth,
+                title = "No bookings yet",
+                message = "Your upcoming sessions will appear here"
+            )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(mockBookings) { booking ->
+                    BookingCard(booking, navController)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BookingCard(booking: MockBooking, navController: NavController) {
+    Card(
+        onClick = { /* TODO: Navigate to booking detail */ },
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = booking.alchemistImage,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    booking.alchemistName,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    booking.serviceName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.AccessTime,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "${booking.date} at ${booking.time}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = when (booking.status) {
+                    "upcoming" -> MaterialTheme.colorScheme.primaryContainer
+                    "completed" -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.errorContainer
+                }
+            ) {
+                Text(
+                    booking.status.capitalize(),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = when (booking.status) {
+                        "upcoming" -> MaterialTheme.colorScheme.onPrimaryContainer
+                        "completed" -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.onErrorContainer
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SavedTab(navController: NavController, paddingValues: PaddingValues) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(16.dp)
+    ) {
+        Text(
+            "Saved Alchemists",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (mockSavedAlchemists.isEmpty()) {
+            EmptyStateMessage(
+                icon = Icons.Default.FavoriteBorder,
+                title = "No saved alchemists",
+                message = "Save your favorite alchemists to quickly book with them again"
+            )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(mockSavedAlchemists) { alchemist ->
+                    AlchemistListCard(alchemist) {
+                        navController.navigate("alchemist_detail/${alchemist.userId}")
                     }
                 }
             }
         }
     }
 }
+
+@Composable
+fun EmptyStateMessage(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    message: String
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+    }
+}
+
+// Mock Data Models and Generators
+data class ModalityCategory(
+    val name: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val color: Color
+)
+
+data class MockBooking(
+    val id: String,
+    val alchemistId: String,
+    val alchemistName: String,
+    val alchemistImage: String,
+    val serviceName: String,
+    val date: String,
+    val time: String,
+    val status: String,
+    val timeUntil: String = ""
+)
+
+// Mock Data
+val mockCategories = listOf(
+    ModalityCategory("Meditation", Icons.Default.SelfImprovement, Color(0xFF6750A4)),
+    ModalityCategory("Reiki", Icons.Default.Spa, Color(0xFF0B6E4F)),
+    ModalityCategory("Yoga", Icons.Default.AccessibilityNew, Color(0xFFE91E63)),
+    ModalityCategory("Massage", Icons.Default.PanTool, Color(0xFF2196F3)),
+    ModalityCategory("Life Coach", Icons.Default.Psychology, Color(0xFFFF6B6B))
+)
+
+val mockAlchemistNames = mapOf(
+    "1" to "Luna Starweaver",
+    "2" to "Sage Moonlight",
+    "3" to "River Harmony",
+    "4" to "Phoenix Rising",
+    "5" to "Crystal Waters"
+)
+
+val mockFeaturedAlchemists = listOf(
+    Alchemist(
+        userId = "1",
+        modalities = listOf("Reiki", "Crystal Healing", "Meditation"),
+        hourlyRate = 85.0,
+        location = Location(city = "Melbourne", state = "VIC", country = "Australia"),
+        rating = 4.9f,
+        reviewCount = 127,
+        yearsOfExperience = 8,
+        isVerified = true
+    ),
+    Alchemist(
+        userId = "2",
+        modalities = listOf("Life Coaching", "Breathwork"),
+        hourlyRate = 120.0,
+        location = Location(city = "Sydney", state = "NSW", country = "Australia"),
+        rating = 4.8f,
+        reviewCount = 89,
+        yearsOfExperience = 5,
+        isVerified = true
+    ),
+    Alchemist(
+        userId = "3",
+        modalities = listOf("Yoga Therapy", "Meditation", "Sound Healing"),
+        hourlyRate = 95.0,
+        location = Location(city = "Byron Bay", state = "NSW", country = "Australia"),
+        rating = 5.0f,
+        reviewCount = 203,
+        yearsOfExperience = 12,
+        isVerified = false
+    )
+)
+
+val mockRecommendedAlchemists = listOf(
+    Alchemist(
+        userId = "4",
+        modalities = listOf("Meditation", "Energy Healing"),
+        hourlyRate = 75.0,
+        location = Location(city = "Melbourne", state = "VIC", country = "Australia"),
+        rating = 4.7f,
+        reviewCount = 64,
+        yearsOfExperience = 4,
+        isVerified = true
+    ),
+    Alchemist(
+        userId = "5",
+        modalities = listOf("Chakra Balancing", "Meditation"),
+        hourlyRate = 90.0,
+        location = Location(city = "Perth", state = "WA", country = "Australia"),
+        rating = 4.9f,
+        reviewCount = 156,
+        yearsOfExperience = 7,
+        isVerified = false
+    )
+)
+
+val mockSavedAlchemists = mockFeaturedAlchemists.take(2)
+
+fun mockUpcomingSession(): MockBooking? {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.HOUR, 2)
+    val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+    val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+    
+    return MockBooking(
+        id = "1",
+        alchemistId = "1",
+        alchemistName = "Luna Starweaver",
+        alchemistImage = "https://picsum.photos/200/200?random=1",
+        serviceName = "Reiki Healing Session",
+        date = dateFormat.format(calendar.time),
+        time = timeFormat.format(calendar.time),
+        status = "upcoming",
+        timeUntil = "in 2 hours"
+    )
+}
+
+val mockBookings = listOf(
+    mockUpcomingSession()!!,
+    MockBooking(
+        id = "2",
+        alchemistId = "2",
+        alchemistName = "Sage Moonlight",
+        alchemistImage = "https://picsum.photos/200/200?random=2",
+        serviceName = "Life Coaching Session",
+        date = "Dec 28",
+        time = "3:00 PM",
+        status = "upcoming"
+    ),
+    MockBooking(
+        id = "3",
+        alchemistId = "3",
+        alchemistName = "River Harmony",
+        alchemistImage = "https://picsum.photos/200/200?random=3",
+        serviceName = "Yoga Therapy",
+        date = "Dec 20",
+        time = "10:00 AM",
+        status = "completed"
+    )
+)
+
+val mockRecentReviews = listOf(
+    Review(
+        id = "1",
+        reviewerId = "user1",
+        reviewerName = "Emma Thompson",
+        alchemistId = "1",
+        rating = 5f,
+        comment = "Luna's Reiki session was transformative. I felt a deep sense of peace and clarity afterwards. Highly recommend!",
+        timestamp = Timestamp.now()
+    ),
+    Review(
+        id = "2",
+        reviewerId = "user2",
+        reviewerName = "James Wilson",
+        alchemistId = "2",
+        rating = 4f,
+        comment = "Great life coaching session with Sage. Really helped me gain perspective on my career goals.",
+        timestamp = Timestamp.now()
+    )
+)
