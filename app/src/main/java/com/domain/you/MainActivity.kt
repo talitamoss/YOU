@@ -7,10 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.domain.you.ui.screens.*
 import com.domain.you.ui.theme.YOUTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +21,52 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             YOUTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                HealingConnectApp()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun HealingConnectApp() {
+    val navController = rememberNavController()
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    YOUTheme {
-        Greeting("Android")
+    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = "splash",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("splash") {
+                SplashScreen(navController)
+            }
+            composable("onboarding") {
+                OnboardingScreen(navController)
+            }
+            composable("login") {
+                LoginScreen(navController)
+            }
+            composable("signup") {
+                SignupScreen(navController)
+            }
+            composable("seeker_home") {
+                SeekerHomeScreen(navController)
+            }
+            composable("alchemist_home") {
+                AlchemistHomeScreen(navController)
+            }
+            composable("profile") {
+                ProfileScreen(navController)
+            }
+            composable("search") {
+                SearchScreen(navController)
+            }
+            composable("alchemist_detail/{alchemistId}") { backStackEntry ->
+                AlchemistDetailScreen(
+                    navController = navController,
+                    alchemistId = backStackEntry.arguments?.getString("alchemistId") ?: ""
+                )
+            }
+        }
     }
 }
