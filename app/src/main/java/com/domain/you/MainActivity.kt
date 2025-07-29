@@ -46,7 +46,7 @@ fun HealingConnectApp() {
             composable("login") {
                 LoginScreen(navController)
             }
-            composable("signup") {
+            composable("signup?role={role}") {
                 SignupScreen(navController)
             }
             composable("seeker_home") {
