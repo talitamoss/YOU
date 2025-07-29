@@ -12,19 +12,7 @@ import androidx.navigation.NavController
 
 // Removed AlchemistHomeScreen as it's now in its own file
 
-@Composable
-fun ProfileScreen(navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Profile Screen", style = MaterialTheme.typography.headlineMedium)
-        // TODO: Implement profile functionality
-    }
-}
+// Removed ProfileScreen as it's now in its own file
 
 @Composable
 fun SearchScreen(navController: NavController) {
