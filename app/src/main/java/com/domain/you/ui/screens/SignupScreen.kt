@@ -6,6 +6,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -50,10 +52,10 @@ fun SignupScreen(
 
     // Handle authentication state changes
     LaunchedEffect(authState) {
-        when (authState) {
+        when (val state = authState) {
             is AuthState.Authenticated -> {
                 // Navigate based on user type
-                val destination = when (authState.user.userType) {
+                val destination = when (state.user.userType) {
                     UserType.SEEKER -> "seeker_home"
                     UserType.ALCHEMIST -> "alchemist_home"
                 }
@@ -141,7 +143,7 @@ fun SignupScreen(
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                         contentDescription = if (passwordVisible) "Hide password" else "Show password"
                     )
                 }
@@ -164,7 +166,7 @@ fun SignupScreen(
             trailingIcon = {
                 IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                     Icon(
-                        if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        if (confirmPasswordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                         contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password"
                     )
                 }
@@ -217,21 +219,24 @@ fun SignupScreen(
         }
 
         // Error Message
-        if (authState is AuthState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Text(
-                    text = authState.message,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    textAlign = TextAlign.Center
-                )
+        when (val state = authState) {
+            is AuthState.Error -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = state.message,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
+            else -> {}
         }
 
         Spacer(modifier = Modifier.height(16.dp))

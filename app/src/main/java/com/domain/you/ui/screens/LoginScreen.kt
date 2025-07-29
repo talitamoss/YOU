@@ -6,8 +6,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,10 +37,10 @@ fun LoginScreen(
 
     // Handle authentication state changes
     LaunchedEffect(authState) {
-        when (authState) {
+        when (val state = authState) {
             is AuthState.Authenticated -> {
                 // Navigate based on user type
-                val destination = when (authState.user.userType) {
+                val destination = when (state.user.userType) {
                     com.domain.you.data.models.UserType.SEEKER -> "seeker_home"
                     com.domain.you.data.models.UserType.ALCHEMIST -> "alchemist_home"
                 }
@@ -100,7 +100,7 @@ fun LoginScreen(
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                         contentDescription = if (passwordVisible) "Hide password" else "Show password"
                     )
                 }
@@ -146,21 +146,24 @@ fun LoginScreen(
         }
 
         // Error Message
-        if (authState is AuthState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Text(
-                    text = authState.message,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    textAlign = TextAlign.Center
-                )
+        when (val state = authState) {
+            is AuthState.Error -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = state.message,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
+            else -> {}
         }
 
         Spacer(modifier = Modifier.height(16.dp))
